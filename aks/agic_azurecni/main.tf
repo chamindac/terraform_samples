@@ -167,7 +167,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
   }
 
   name                = "aks-chdemo-dev04"
-  kubernetes_version  = "1.23.8"
+  kubernetes_version  = "1.24.3"
   location            = azurerm_resource_group.aks_rg.location
   resource_group_name = azurerm_resource_group.aks_rg.name
   dns_prefix          = "aks-chdemo-dev04-dns"
