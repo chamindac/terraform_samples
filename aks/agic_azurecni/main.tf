@@ -171,6 +171,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
   location            = azurerm_resource_group.aks_rg.location
   resource_group_name = azurerm_resource_group.aks_rg.name
   dns_prefix          = "aks-chdemo-dev04-dns"
+  node_resource_group = "rg-chdemo-aks-dev04"
 
   network_profile {
     network_plugin = "azure"
@@ -252,11 +253,11 @@ resource "azurerm_role_assignment" "acr_attach" {
 
 #---------------------
 # Ingess agw for aks is not getting the managed identity assigned automatically when attached with TF
-# need to get the user assigned managed id from MC* rg when it is available after cluster creation
+# need to get the user assigned managed id from node rg when it is available after cluster creation
 
-# get MC* rg
-data "azurerm_resource_group" "aks_mc_rg" {
-  name     = "MC_${azurerm_resource_group.aks_rg.name}_${azurerm_kubernetes_cluster.aks.name}_westeurope"
+# get node rg
+data "azurerm_resource_group" "aks_node_rg" {
+  name     = "rg-chdemo-aks-dev04"
   depends_on = [
     azurerm_kubernetes_cluster.aks
   ]
@@ -264,12 +265,12 @@ data "azurerm_resource_group" "aks_mc_rg" {
 
 # get user assigned manged id
 data "azurerm_user_assigned_identity" "aks_agw_uid" {
-  resource_group_name = data.azurerm_resource_group.aks_mc_rg.name
+  resource_group_name = data.azurerm_resource_group.aks_node_rg.name
   name = "ingressapplicationgateway-${azurerm_kubernetes_cluster.aks.name}"
 
   depends_on = [
     azurerm_kubernetes_cluster.aks,
-    data.azurerm_resource_group.aks_mc_rg
+    data.azurerm_resource_group.aks_node_rg
   ]
 }
 
@@ -281,7 +282,7 @@ resource "azurerm_role_assignment" "aks_agw_role" {
   
   depends_on = [
     azurerm_kubernetes_cluster.aks,
-    data.azurerm_resource_group.aks_mc_rg,
+    data.azurerm_resource_group.aks_node_rg,
     data.azurerm_user_assigned_identity.aks_agw_uid
   ]
 }
