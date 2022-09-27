@@ -17,13 +17,13 @@ provider "azurerm" {
 
 # resource group for aks
 resource "azurerm_resource_group" "aks_rg" {
-  name     = "rg-cnidemo-dev04"
+  name     = "rg-chdemo-dev04"
   location = "westeurope"
 }
 
 # vnet for aks
 resource "azurerm_virtual_network" "aks_vnet" {
-  name                = "vnet_cnidemo_dev04"
+  name                = "vnet_chdemo_dev04"
   resource_group_name = azurerm_resource_group.aks_rg.name
   location            = azurerm_resource_group.aks_rg.location
   address_space       = ["10.235.0.0/16"]
@@ -31,7 +31,7 @@ resource "azurerm_virtual_network" "aks_vnet" {
 
 # subnet for aks
 resource "azurerm_subnet" "aks_snet" {
-  name                 = "snet-aks-cnidemo-dev04"
+  name                 = "snet-aks-chdemo-dev04"
   resource_group_name  = azurerm_resource_group.aks_rg.name
   virtual_network_name = azurerm_virtual_network.aks_vnet.name
   address_prefixes     = ["10.235.128.0/18"]
@@ -39,7 +39,7 @@ resource "azurerm_subnet" "aks_snet" {
 
 # subnet for aks ingress agw
 resource "azurerm_subnet" "aks_agw_snet" {
-  name                 = "snet-agw-cnidemo-dev04"
+  name                 = "snet-agw-chdemo-dev04"
   resource_group_name  = azurerm_resource_group.aks_rg.name
   virtual_network_name = azurerm_virtual_network.aks_vnet.name
   address_prefixes     = ["10.235.0.0/24"]
@@ -47,7 +47,7 @@ resource "azurerm_subnet" "aks_agw_snet" {
 
 # public ip for aks ingress agw
 resource "azurerm_public_ip" "aks_agw_pip" {
-  name                = "pip-cnidemo-dev04"
+  name                = "pip-chdemo-dev04"
   location            = azurerm_resource_group.aks_rg.location
   resource_group_name = azurerm_resource_group.aks_rg.name
   allocation_method   = "Static"
@@ -57,7 +57,7 @@ resource "azurerm_public_ip" "aks_agw_pip" {
 
 # ingress agw for aks 
 resource "azurerm_application_gateway" "aks_agw" {
-  name                = "agw-cnidemo-dev04"
+  name                = "agw-chdemo-dev04"
   location            = azurerm_resource_group.aks_rg.location
   resource_group_name = azurerm_resource_group.aks_rg.name
 
@@ -84,12 +84,12 @@ resource "azurerm_application_gateway" "aks_agw" {
 
   # need to have a public IP for Standard_v2 AGW. will not be used with any listerners by AKS
   frontend_ip_configuration {
-    name                 = "cnidemoAKSPublicFrontendIp"
+    name                 = "chdemoAKSPublicFrontendIp"
     public_ip_address_id = azurerm_public_ip.aks_agw_pip.id
   }
 
   frontend_ip_configuration {
-    name                 = "cnidemoAKSPrivateFrontendIp"
+    name                 = "chdemoAKSPrivateFrontendIp"
     private_ip_address   = "10.235.0.100"
     private_ip_address_allocation = "Static"
     subnet_id = azurerm_subnet.aks_agw_snet.id
@@ -112,7 +112,7 @@ resource "azurerm_application_gateway" "aks_agw" {
 
   http_listener {
     name                           = "dummyListener"
-    frontend_ip_configuration_name = "cnidemoAKSPrivateFrontendIp"
+    frontend_ip_configuration_name = "chdemoAKSPrivateFrontendIp"
     frontend_port_name             = "port_80"
     protocol                       = "Http"
   }
@@ -137,6 +137,7 @@ resource "azurerm_application_gateway" "aks_agw" {
       http_listener,
       probe,
       request_routing_rule,
+      url_path_map,
       tags
     ]
   }
@@ -144,7 +145,7 @@ resource "azurerm_application_gateway" "aks_agw" {
 
 # acr
 resource "azurerm_container_registry" "acr" {
-  name                = "acrcnidemodev04"
+  name                = "acrchdemodev04"
   resource_group_name = azurerm_resource_group.aks_rg.name
   location            = azurerm_resource_group.aks_rg.location
   sku                 = "Standard"
@@ -165,11 +166,11 @@ resource "azurerm_kubernetes_cluster" "aks" {
     ignore_changes = [default_node_pool[0].node_count]
   }
 
-  name                = "aks-cnidemo-dev04"
+  name                = "aks-chdemo-dev04"
   kubernetes_version  = "1.23.8"
   location            = azurerm_resource_group.aks_rg.location
   resource_group_name = azurerm_resource_group.aks_rg.name
-  dns_prefix          = "aks-cnidemo-dev04-dns"
+  dns_prefix          = "aks-chdemo-dev04-dns"
 
   network_profile {
     network_plugin = "azure"
