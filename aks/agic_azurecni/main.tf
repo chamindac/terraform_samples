@@ -138,6 +138,8 @@ resource "azurerm_application_gateway" "aks_agw" {
       probe,
       request_routing_rule,
       url_path_map,
+      rewrite_rule_set,
+      frontend_port,
       tags
     ]
   }
