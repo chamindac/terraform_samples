@@ -138,6 +138,8 @@ resource "azurerm_application_gateway" "aks_agw" {
       probe,
       request_routing_rule,
       url_path_map,
+      rewrite_rule_set,
+      frontend_port,
       tags
     ]
   }
@@ -232,7 +234,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "aks_win" {
   min_count             = 1
   max_count             = 20
   max_pods              = 30
-  vm_size               = "Standard_DS4_v2"
+  vm_size               = "Standard_B4ms"
   os_type               = "Windows"
   vnet_subnet_id        = azurerm_subnet.aks_snet.id
   os_disk_size_gb       = "512"
