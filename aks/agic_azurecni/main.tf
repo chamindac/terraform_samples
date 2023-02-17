@@ -1,12 +1,16 @@
+locals {
+  kubernetes_version = "1.24.9"
+}
+
 terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=3.23.0"
+      version = "=3.44.1"
     }
     azuread = {
       source  = "hashicorp/azuread"
-      version = "=2.28.1"
+      version = "=2.34.0"
     }
   }
 }
@@ -169,7 +173,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
   }
 
   name                = "aks-chdemo-dev04"
-  kubernetes_version  = "1.24.3"
+  kubernetes_version  = local.kubernetes_version
   location            = azurerm_resource_group.aks_rg.location
   resource_group_name = azurerm_resource_group.aks_rg.name
   dns_prefix          = "aks-chdemo-dev04-dns"
@@ -180,14 +184,15 @@ resource "azurerm_kubernetes_cluster" "aks" {
   }
 
   default_node_pool {
-    name                = "demo04linux"
-    enable_auto_scaling = true
-    node_count          = 1
-    min_count           = 1
-    max_count           = 5
-    max_pods            = 110
-    vm_size             = "Standard_B4ms"
-    vnet_subnet_id      = azurerm_subnet.aks_snet.id
+    name                  = "demo04linux"
+    orchestrator_version  = local.kubernetes_version
+    enable_auto_scaling   = true
+    node_count            = 1
+    min_count             = 1
+    max_count             = 5
+    max_pods              = 110
+    vm_size               = "Standard_B4ms"
+    vnet_subnet_id        = azurerm_subnet.aks_snet.id
   }
 
   identity {
@@ -228,6 +233,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "aks_win" {
   }
 
   name                  = "win04"
+  orchestrator_version  = local.kubernetes_version
   kubernetes_cluster_id = azurerm_kubernetes_cluster.aks.id
   enable_auto_scaling   = true
   node_count            = 1
