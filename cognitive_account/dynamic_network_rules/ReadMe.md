@@ -38,10 +38,10 @@ resource "azurerm_cognitive_account" "ca" {
 }
 ```
 
-if env is dev then two subnets get added to the cognitive account allowed subnets.
+If env is dev then two subnets get added to the cognitive account allowed subnets.
 `terraform apply -var='env=dev'`
 ![image](https://user-images.githubusercontent.com/20109548/235071594-baf100b8-2943-4b88-a2b6-98d5a894309d.png)
 
-if env is not dev then only one subnet get added to the cognitive account allowed subnets.
+If env is not dev then only one subnet get added to the cognitive account allowed subnets.
 `terraform apply -var='env=prod'`
 ![image](https://user-images.githubusercontent.com/20109548/235071669-73e3d382-4a22-4da2-b14c-a144c0d8137b.png)
