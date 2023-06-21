@@ -282,11 +282,25 @@ data "azurerm_user_assigned_identity" "aks_agw_uid" {
   ]
 }
 
-# assign user assigned managed id of aks to ingress agw - required to allow AGIC to manage agw
+# assign user assigned ingress managed id of aks to ingress agw - required to allow AGIC to manage agw
 resource "azurerm_role_assignment" "aks_agw_role" {
   principal_id                     = data.azurerm_user_assigned_identity.aks_agw_uid.principal_id
   role_definition_name             = "Contributor"
   scope                            = azurerm_application_gateway.aks_agw.id
+  
+  depends_on = [
+    azurerm_kubernetes_cluster.aks,
+    data.azurerm_resource_group.aks_node_rg,
+    data.azurerm_user_assigned_identity.aks_agw_uid
+  ]
+}
+
+# assign user assigned ingress managed id of aks to ingress agw subnet 
+# required to allow AGIC to manage agw
+resource "azurerm_role_assignment" "aks_agw_snet_role" {
+  principal_id                     = data.azurerm_user_assigned_identity.aks_agw_uid.principal_id
+  role_definition_name             = "Network Contributor"
+  scope                            = azurerm_subnet.aks_agw_snet.id
   
   depends_on = [
     azurerm_kubernetes_cluster.aks,
