@@ -48,5 +48,5 @@ terraform apply -var blue_deploy=true -var green_deploy=true -var green_live=fal
 
 - Destroy green storage - keep blue live
 ```
-terraform apply -var blue_deploy=false -var green_deploy=true -var green_live=true -auto-approve
+terraform apply -var blue_deploy=true -var green_deploy=false -var green_live=false -auto-approve
 ```
