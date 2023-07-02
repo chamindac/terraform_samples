@@ -1,4 +1,4 @@
-***Blue Green Deployment***
+***AKS Blue Green Deployment - Algorithm Test***
 
 This example uses resource group to demo a blue green deployment to keep things simple. This resource group example can be used to understand blue green deployment with terraform for AKS. Same pattern can be applied to deploy other Azure resources well. Instead of two resource groups used here to run demo faster, actual implementation can be two AKS clusters (blue and green) withing a single resource group or in two resource groups. 
 
