@@ -1,5 +1,5 @@
 locals {
-  kubernetes_version = "1.27.1"
+  kubernetes_version = "1.24.9"
 }
 
 variable "green_golive" {
