@@ -15,7 +15,7 @@ Pipeline should define below variables.
 - `green_deploy`: Should set intial value to `false` for fresh deployment or `true` if blue cluster is existing. 
 - `green_golive`: Should set intial value to `true` for fresh deployment or `false` if blue cluster is existing.
 - `current_k8s`: Should set as empty value for fresh deployment or set as current blue cluster k8s version if blue cluster is existing.
-- `app_deploy_culster`: Should set as empty value for fresh deployment or set as current blue cluster name if blue cluster is existing.
+- `app_deploy_cluster`: Should set as empty value for fresh deployment or set as current blue cluster name if blue cluster is existing.
 
 Pipeline should update the value as specified in below phases for all above variables. After intial setup **no manual changes should be done** to above pipeline variables. 	
 
@@ -24,10 +24,10 @@ Pipeline should update the value as specified in below phases for all above vari
 Here the Blue or Green AKS cluster gets deployed based on current live cluster. Existing cluster is not changed. If fresh deployment a blue cluster created and set as deployed but not live.
 
 Update pipeline variable `green_golive` to NOT(`green_golive`).
-Update `app_deploy_culster` from TF output variable `app_deploy_cluster`.
+Update `app_deploy_cluster` from TF output variable `app_deploy_cluster`.
 
 ***Application deployment phase `appdeploy`***
-Deploy the apps to `app_deploy_culster`.
+Deploy the apps to `app_deploy_cluster`.
 
 ***Infra `switch` phase***
 TF will set the `app_deploy_cluster` as live cluster, by routing traffic to it.
@@ -73,13 +73,13 @@ live_rg_tags = tomap({
 })
 ```
 Update pipeline variable `green_golive` to NOT(`green_golive`).
-Update `app_deploy_culster` from TF output variable `app_deploy_cluster`.
+Update `app_deploy_cluster` from TF output variable `app_deploy_cluster`.
 
 Result:
 `green_golive = true --> false`
-`app_deploy_culster = '' --> ch-demo-dev-euw-001-rg-blue`
+`app_deploy_cluster = '' --> ch-demo-dev-euw-001-rg-blue`
 
-- `appdeploy`: Application deplyment to `app_deploy_culster`, here to blue should be done in pipeline.
+- `appdeploy`: Application deplyment to `app_deploy_cluster`, here to blue should be done in pipeline.
 
 - `switch`: Bring blue cluster live with infra `switch` phase using pipeline variables as input to TF.
 ```
@@ -154,13 +154,13 @@ live_rg_tags = tomap({
 })
 ```
 Update pipeline variable `green_golive` to NOT(`green_golive`).
-Update `app_deploy_culster` from TF output variable `app_deploy_cluster`.
+Update `app_deploy_cluster` from TF output variable `app_deploy_cluster`.
 
 Result:
 `green_golive = false --> true`
-`app_deploy_culster = ch-demo-dev-euw-001-rg-blue --> ch-demo-dev-euw-001-rg-green`
+`app_deploy_cluster = ch-demo-dev-euw-001-rg-blue --> ch-demo-dev-euw-001-rg-green`
 
-- `appdeploy`: Application deplyment to `app_deploy_culster`, to green should be done in pipeline.
+- `appdeploy`: Application deplyment to `app_deploy_cluster`, to green should be done in pipeline.
 
 - `switch`: Bring green cluster live with infra `switch` phase using pipeline variables as input to TF.
 ```
@@ -235,13 +235,13 @@ live_rg_tags = tomap({
 })
 ```
 Update pipeline variable `green_golive` to NOT(`green_golive`).
-Update `app_deploy_culster` from TF output variable `app_deploy_cluster`.
+Update `app_deploy_cluster` from TF output variable `app_deploy_cluster`.
 
 Result:
 `green_golive = true --> false`
-`app_deploy_culster = ch-demo-dev-euw-001-rg-green --> ch-demo-dev-euw-001-rg-blue`
+`app_deploy_cluster = ch-demo-dev-euw-001-rg-green --> ch-demo-dev-euw-001-rg-blue`
 
-- `appdeploy`: Application deplyment to `app_deploy_culster`, here to blue should be done in pipeline.
+- `appdeploy`: Application deplyment to `app_deploy_cluster`, here to blue should be done in pipeline.
 
 - `switch`: Bring blue cluster live with infra `switch` phase using pipeline variables as input to TF.
 ```
@@ -316,13 +316,13 @@ live_rg_tags = tomap({
 })
 ```
 Update pipeline variable `green_golive` to NOT(`green_golive`).
-Update `app_deploy_culster` from TF output variable `app_deploy_cluster`.
+Update `app_deploy_cluster` from TF output variable `app_deploy_cluster`.
 
 Result:
 `green_golive = false --> true`
-`app_deploy_culster = ch-demo-dev-euw-001-rg-blue --> ch-demo-dev-euw-001-rg-green`
+`app_deploy_cluster = ch-demo-dev-euw-001-rg-blue --> ch-demo-dev-euw-001-rg-green`
 
-- `appdeploy`: Application deplyment to `app_deploy_culster`, to green should be done in pipeline.
+- `appdeploy`: Application deplyment to `app_deploy_cluster`, to green should be done in pipeline.
 
 - `switch`: Bring green cluster live with infra `switch` phase using pipeline variables as input to TF.
 ```
@@ -397,13 +397,13 @@ live_rg_tags = tomap({
 })
 ```
 Update pipeline variable `green_golive` to NOT(`green_golive`).
-Update `app_deploy_culster` from TF output variable `app_deploy_cluster`.
+Update `app_deploy_cluster` from TF output variable `app_deploy_cluster`.
 
 Result:
 `green_golive = true --> false`
-`app_deploy_culster = ch-demo-dev-euw-001-rg-green --> ch-demo-dev-euw-001-rg-blue`
+`app_deploy_cluster = ch-demo-dev-euw-001-rg-green --> ch-demo-dev-euw-001-rg-blue`
 
-- `appdeploy`: Application deplyment to `app_deploy_culster`, here to blue should be done in pipeline.
+- `appdeploy`: Application deplyment to `app_deploy_cluster`, here to blue should be done in pipeline.
 
 - `switch`: Bring blue cluster live with infra `switch` phase using pipeline variables as input to TF.
 ```
@@ -478,13 +478,13 @@ live_rg_tags = tomap({
 })
 ```
 Update pipeline variable `green_golive` to NOT(`green_golive`).
-Update `app_deploy_culster` from TF output variable `app_deploy_cluster`.
+Update `app_deploy_cluster` from TF output variable `app_deploy_cluster`.
 
 Result:
 `green_golive = false --> true`
-`app_deploy_culster = ch-demo-dev-euw-001-rg-blue --> ch-demo-dev-euw-001-rg-green`
+`app_deploy_cluster = ch-demo-dev-euw-001-rg-blue --> ch-demo-dev-euw-001-rg-green`
 
-- `appdeploy`: Application deplyment to `app_deploy_culster`, to green should be done in pipeline.
+- `appdeploy`: Application deplyment to `app_deploy_cluster`, to green should be done in pipeline.
 
 - `switch`: Bring green cluster live with infra `switch` phase using pipeline variables as input to TF.
 ```
@@ -559,13 +559,13 @@ live_rg_tags = tomap({
 })
 ```
 Update pipeline variable `green_golive` to NOT(`green_golive`).
-Update `app_deploy_culster` from TF output variable `app_deploy_cluster`.
+Update `app_deploy_cluster` from TF output variable `app_deploy_cluster`.
 
 Result:
 `green_golive = true --> false`
-`app_deploy_culster = ch-demo-dev-euw-001-rg-green --> ch-demo-dev-euw-001-rg-blue`
+`app_deploy_cluster = ch-demo-dev-euw-001-rg-green --> ch-demo-dev-euw-001-rg-blue`
 
-- `appdeploy`: Application deplyment to `app_deploy_culster`, here to blue should be done in pipeline.
+- `appdeploy`: Application deplyment to `app_deploy_cluster`, here to blue should be done in pipeline.
 
 - `switch`: Bring blue cluster live with infra `switch` phase using pipeline variables as input to TF.
 ```
@@ -640,13 +640,13 @@ live_rg_tags = tomap({
 })
 ```
 Update pipeline variable `green_golive` to NOT(`green_golive`).
-Update `app_deploy_culster` from TF output variable `app_deploy_cluster`.
+Update `app_deploy_cluster` from TF output variable `app_deploy_cluster`.
 
 Result:
 `green_golive = false --> true`
-`app_deploy_culster = ch-demo-dev-euw-001-rg-blue --> ch-demo-dev-euw-001-rg-green`
+`app_deploy_cluster = ch-demo-dev-euw-001-rg-blue --> ch-demo-dev-euw-001-rg-green`
 
-- `appdeploy`: Application deplyment to `app_deploy_culster`, to green should be done in pipeline.
+- `appdeploy`: Application deplyment to `app_deploy_cluster`, to green should be done in pipeline.
 
 - `switch`: Bring green cluster live with infra `switch` phase using pipeline variables as input to TF.
 ```
@@ -721,13 +721,13 @@ live_rg_tags = tomap({
 })
 ```
 Update pipeline variable `green_golive` to NOT(`green_golive`).
-Update `app_deploy_culster` from TF output variable `app_deploy_cluster`.
+Update `app_deploy_cluster` from TF output variable `app_deploy_cluster`.
 
 Result:
 `green_golive = true --> false`
-`app_deploy_culster = ch-demo-dev-euw-001-rg-green --> ch-demo-dev-euw-001-rg-blue`
+`app_deploy_cluster = ch-demo-dev-euw-001-rg-green --> ch-demo-dev-euw-001-rg-blue`
 
-- `appdeploy`: Application deplyment to `app_deploy_culster`, here to blue should be done in pipeline.
+- `appdeploy`: Application deplyment to `app_deploy_cluster`, here to blue should be done in pipeline.
 
 - `switch`: Bring blue cluster live with infra `switch` phase using pipeline variables as input to TF.
 ```
@@ -802,13 +802,13 @@ live_rg_tags = tomap({
 })
 ```
 Update pipeline variable `green_golive` to NOT(`green_golive`).
-Update `app_deploy_culster` from TF output variable `app_deploy_cluster`.
+Update `app_deploy_cluster` from TF output variable `app_deploy_cluster`.
 
 Result:
 `green_golive = false --> true`
-`app_deploy_culster = ch-demo-dev-euw-001-rg-blue --> ch-demo-dev-euw-001-rg-green`
+`app_deploy_cluster = ch-demo-dev-euw-001-rg-blue --> ch-demo-dev-euw-001-rg-green`
 
-- `appdeploy`: Application deplyment to `app_deploy_culster`, to green should be done in pipeline.
+- `appdeploy`: Application deplyment to `app_deploy_cluster`, to green should be done in pipeline.
 
 - `switch`: Bring green cluster live with infra `switch` phase using pipeline variables as input to TF.
 ```
@@ -883,13 +883,13 @@ live_rg_tags = tomap({
 })
 ```
 Update pipeline variable `green_golive` to NOT(`green_golive`).
-Update `app_deploy_culster` from TF output variable `app_deploy_cluster`.
+Update `app_deploy_cluster` from TF output variable `app_deploy_cluster`.
 
 Result:
 `green_golive = true --> false`
-`app_deploy_culster = ch-demo-dev-euw-001-rg-green --> ch-demo-dev-euw-001-rg-blue`
+`app_deploy_cluster = ch-demo-dev-euw-001-rg-green --> ch-demo-dev-euw-001-rg-blue`
 
-- `appdeploy`: Application deplyment to `app_deploy_culster`, here to blue should be done in pipeline.
+- `appdeploy`: Application deplyment to `app_deploy_cluster`, here to blue should be done in pipeline.
 
 - `switch`: Bring blue cluster live with infra `switch` phase using pipeline variables as input to TF.
 ```
