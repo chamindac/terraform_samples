@@ -56,7 +56,7 @@ terraform init
 ***Intial deployment - 001. blue deployment***
 - `deploy`: Create blue cluster with infra `deploy` phase.
 ```
-terraform apply -var deployment_phase=deploy -var blue_deploy=true -var green_deploy=false -var green_golive=true -var current_kubernetes_version="" -auto-approve
+terraform apply -var deployment_phase=deploy -var blue_deploy=true -var green_deploy=false -var green_golive=true -auto-approve
 ```
 TF output
 ```
@@ -83,7 +83,7 @@ Result:
 
 - `switch`: Bring blue cluster live with infra `switch` phase using pipeline variables as input to TF.
 ```
-terraform apply -var deployment_phase=switch -var blue_deploy=true -var green_deploy=false -var green_golive=false -var current_kubernetes_version="" -auto-approve
+terraform apply -var deployment_phase=switch -var blue_deploy=true -var green_deploy=false -var green_golive=false -auto-approve
 ```
 TF output
 ```
@@ -110,7 +110,7 @@ Result:
 
 - `destroy`: Destroy green cluster with infra `destroy` phase using pipeline variables as input to TF. In this instance nothing to destroy as no green cluster available.
 ```
-terraform apply -var deployment_phase=destroy -var blue_deploy=true -var green_deploy=false -var green_golive=false -var current_kubernetes_version=1.24.9 -auto-approve
+terraform apply -var deployment_phase=destroy -var blue_deploy=true -var green_deploy=false -var green_golive=false -auto-approve
 ```
 TF output
 ```
@@ -137,7 +137,7 @@ Result:
 ***Next deployment - 002. green deployment***
 - `deploy`: Create green cluster with infra `deploy` phase.
 ```
-terraform apply -var deployment_phase=deploy -var blue_deploy=true -var green_deploy=true -var green_golive=false -var current_kubernetes_version=1.24.9 -auto-approve
+terraform apply -var deployment_phase=deploy -var blue_deploy=true -var green_deploy=true -var green_golive=false -auto-approve
 ```
 TF output
 ```
@@ -164,7 +164,7 @@ Result:
 
 - `switch`: Bring green cluster live with infra `switch` phase using pipeline variables as input to TF.
 ```
-terraform apply -var deployment_phase=switch -var blue_deploy=true -var green_deploy=true -var green_golive=true -var current_kubernetes_version=1.24.9 -auto-approve
+terraform apply -var deployment_phase=switch -var blue_deploy=true -var green_deploy=true -var green_golive=true -auto-approve
 ```
 TF output
 ```
@@ -191,7 +191,7 @@ Result:
 
 - `destroy`: Destroy blue cluster with infra `destroy` phase using pipeline variables as input to TF.
 ```
-terraform apply -var deployment_phase=destroy -var blue_deploy=false -var green_deploy=true -var green_golive=true -var current_kubernetes_version=1.24.9 -auto-approve
+terraform apply -var deployment_phase=destroy -var blue_deploy=false -var green_deploy=true -var green_golive=true -auto-approve
 ```
 TF output
 ```
@@ -218,7 +218,7 @@ Result:
 ***Next deployment - 003. blue deployment***
 - `deploy`: Create blue cluster with infra `deploy` phase.
 ```
-terraform apply -var deployment_phase=deploy -var blue_deploy=true -var green_deploy=true -var green_golive=true -var current_kubernetes_version=1.24.9 -auto-approve
+terraform apply -var deployment_phase=deploy -var blue_deploy=true -var green_deploy=true -var green_golive=true -auto-approve
 ```
 TF output
 ```
@@ -245,7 +245,7 @@ Result:
 
 - `switch`: Bring blue cluster live with infra `switch` phase using pipeline variables as input to TF.
 ```
-terraform apply -var deployment_phase=switch -var blue_deploy=true -var green_deploy=true -var green_golive=false -var current_kubernetes_version=1.24.9 -auto-approve
+terraform apply -var deployment_phase=switch -var blue_deploy=true -var green_deploy=true -var green_golive=false -auto-approve
 ```
 TF output
 ```
@@ -272,7 +272,7 @@ Result:
 
 - `destroy`: Destroy green cluster with infra `destroy` phase using pipeline variables as input to TF.
 ```
-terraform apply -var deployment_phase=destroy -var blue_deploy=true -var green_deploy=false -var green_golive=false -var current_kubernetes_version=1.24.9 -auto-approve
+terraform apply -var deployment_phase=destroy -var blue_deploy=true -var green_deploy=false -var green_golive=false -auto-approve
 ```
 TF output
 ```

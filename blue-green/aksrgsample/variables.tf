@@ -1,5 +1,5 @@
 locals {
-  kubernetes_version = "1.24.9"
+  kubernetes_version = "1.25.6"
 }
 
 variable "green_golive" {
@@ -27,6 +27,6 @@ variable "deployment_phase" {
   }
 }
 
-variable "current_kubernetes_version" {
-  type = string
-}
+# variable "current_kubernetes_version" {
+#   type = string
+# }

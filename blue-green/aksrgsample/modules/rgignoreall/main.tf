@@ -8,6 +8,6 @@ resource "azurerm_resource_group" "demo" {
   }
 
   lifecycle {
-    ignore_changes = []
+    ignore_changes = all
   }
 }
