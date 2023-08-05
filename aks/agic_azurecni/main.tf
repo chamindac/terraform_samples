@@ -1,16 +1,16 @@
 locals {
-  kubernetes_version = "1.24.9"
+  kubernetes_version = "1.25.6"
 }
 
 terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=3.44.1"
+      version = "=3.65.0"
     }
     azuread = {
       source  = "hashicorp/azuread"
-      version = "=2.34.0"
+      version = "=2.40.0"
     }
   }
 }
@@ -21,13 +21,13 @@ provider "azurerm" {
 
 # resource group for aks
 resource "azurerm_resource_group" "aks_rg" {
-  name     = "rg-chdemo-dev04"
-  location = "westeurope"
+  name     = "rg-chdemo-dev01"
+  location = "eastus"
 }
 
 # vnet for aks
 resource "azurerm_virtual_network" "aks_vnet" {
-  name                = "vnet_chdemo_dev04"
+  name                = "vnet_chdemo_dev01"
   resource_group_name = azurerm_resource_group.aks_rg.name
   location            = azurerm_resource_group.aks_rg.location
   address_space       = ["10.235.0.0/16"]
@@ -35,7 +35,7 @@ resource "azurerm_virtual_network" "aks_vnet" {
 
 # subnet for aks
 resource "azurerm_subnet" "aks_snet" {
-  name                 = "snet-aks-chdemo-dev04"
+  name                 = "snet-aks-chdemo-dev01"
   resource_group_name  = azurerm_resource_group.aks_rg.name
   virtual_network_name = azurerm_virtual_network.aks_vnet.name
   address_prefixes     = ["10.235.128.0/18"]
@@ -43,7 +43,7 @@ resource "azurerm_subnet" "aks_snet" {
 
 # subnet for aks ingress agw
 resource "azurerm_subnet" "aks_agw_snet" {
-  name                 = "snet-agw-chdemo-dev04"
+  name                 = "snet-agw-chdemo-dev01"
   resource_group_name  = azurerm_resource_group.aks_rg.name
   virtual_network_name = azurerm_virtual_network.aks_vnet.name
   address_prefixes     = ["10.235.0.0/24"]
@@ -51,17 +51,17 @@ resource "azurerm_subnet" "aks_agw_snet" {
 
 # public ip for aks ingress agw
 resource "azurerm_public_ip" "aks_agw_pip" {
-  name                = "pip-chdemo-dev04"
+  name                = "pip-chdemo-dev01"
   location            = azurerm_resource_group.aks_rg.location
   resource_group_name = azurerm_resource_group.aks_rg.name
   allocation_method   = "Static"
   sku                 = "Standard"
-  
+
 }
 
 # ingress agw for aks 
 resource "azurerm_application_gateway" "aks_agw" {
-  name                = "agw-chdemo-dev04"
+  name                = "agw-chdemo-dev01"
   location            = azurerm_resource_group.aks_rg.location
   resource_group_name = azurerm_resource_group.aks_rg.name
 
@@ -80,7 +80,7 @@ resource "azurerm_application_gateway" "aks_agw" {
     subnet_id = azurerm_subnet.aks_agw_snet.id
 
   }
-  
+
   frontend_port {
     name = "port_80"
     port = 80
@@ -93,10 +93,10 @@ resource "azurerm_application_gateway" "aks_agw" {
   }
 
   frontend_ip_configuration {
-    name                 = "chdemoAKSPrivateFrontendIp"
-    private_ip_address   = "10.235.0.100"
+    name                          = "chdemoAKSPrivateFrontendIp"
+    private_ip_address            = "10.235.0.100"
     private_ip_address_allocation = "Static"
-    subnet_id = azurerm_subnet.aks_agw_snet.id
+    subnet_id                     = azurerm_subnet.aks_agw_snet.id
   }
 
   # dummy intial configuration for backend, listners, rules
@@ -135,8 +135,8 @@ resource "azurerm_application_gateway" "aks_agw" {
   # we have to prevent update via terraform to below configurations in agw
   # tags is not madatory to ignore but nice to have
   lifecycle {
-    ignore_changes       = [
-      backend_address_pool, 
+    ignore_changes = [
+      backend_address_pool,
       backend_http_settings,
       http_listener,
       probe,
@@ -151,7 +151,7 @@ resource "azurerm_application_gateway" "aks_agw" {
 
 # acr
 resource "azurerm_container_registry" "acr" {
-  name                = "acrchdemodev04"
+  name                = "acrchdemodev01"
   resource_group_name = azurerm_resource_group.aks_rg.name
   location            = azurerm_resource_group.aks_rg.location
   sku                 = "Standard"
@@ -172,27 +172,27 @@ resource "azurerm_kubernetes_cluster" "aks" {
     ignore_changes = [default_node_pool[0].node_count]
   }
 
-  name                = "aks-chdemo-dev04"
+  name                = "aks-chdemo-dev01"
   kubernetes_version  = local.kubernetes_version
   location            = azurerm_resource_group.aks_rg.location
   resource_group_name = azurerm_resource_group.aks_rg.name
-  dns_prefix          = "aks-chdemo-dev04-dns"
-  node_resource_group = "rg-chdemo-aks-dev04"
+  dns_prefix          = "aks-chdemo-dev01-dns"
+  node_resource_group = "rg-chdemo-aks-dev01"
 
   network_profile {
     network_plugin = "azure"
   }
 
   default_node_pool {
-    name                  = "demo04linux"
-    orchestrator_version  = local.kubernetes_version
-    enable_auto_scaling   = true
-    node_count            = 1
-    min_count             = 1
-    max_count             = 5
-    max_pods              = 110
-    vm_size               = "Standard_B4ms"
-    vnet_subnet_id        = azurerm_subnet.aks_snet.id
+    name                 = "demo04linux"
+    orchestrator_version = local.kubernetes_version
+    enable_auto_scaling  = true
+    node_count           = 1
+    min_count            = 1
+    max_count            = 5
+    max_pods             = 110
+    vm_size              = "Standard_B4ms"
+    vnet_subnet_id       = azurerm_subnet.aks_snet.id
   }
 
   identity {
@@ -206,6 +206,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
 
   ingress_application_gateway {
     gateway_id = azurerm_application_gateway.aks_agw.id
+    subnet_id  = azurerm_application_gateway.aks_agw.id
   }
 
   key_vault_secrets_provider {
@@ -213,13 +214,13 @@ resource "azurerm_kubernetes_cluster" "aks" {
   }
 
   azure_active_directory_role_based_access_control {
-    azure_rbac_enabled     = false
-    managed                = true
-    tenant_id              = "efbad420-a8aa-4fcc-9e95-1d06435672d9"
+    azure_rbac_enabled = false
+    managed            = true
+    tenant_id          = "efbad420-a8aa-4fcc-9e95-1d06435672d9"
 
     # add my team as cluster admin 
-    admin_group_object_ids =  [
-            data.azuread_group.myteam.object_id] # azure AD group object ID
+    admin_group_object_ids = [
+    data.azuread_group.myteam.object_id] # azure AD group object ID
 
   }
 
@@ -227,7 +228,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
 
 # windows node pool for aks
 resource "azurerm_kubernetes_cluster_node_pool" "aks_win" {
-  
+
   lifecycle {
     ignore_changes = [node_count]
   }
@@ -249,7 +250,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "aks_win" {
   depends_on = [
     azurerm_kubernetes_cluster.aks
   ]
-  
+
 }
 
 resource "azurerm_role_assignment" "acr_attach" {
@@ -265,7 +266,7 @@ resource "azurerm_role_assignment" "acr_attach" {
 
 # get node rg
 data "azurerm_resource_group" "aks_node_rg" {
-  name     = "rg-chdemo-aks-dev04"
+  name = azurerm_kubernetes_cluster.aks.node_resource_group
   depends_on = [
     azurerm_kubernetes_cluster.aks
   ]
@@ -274,7 +275,7 @@ data "azurerm_resource_group" "aks_node_rg" {
 # get user assigned manged id
 data "azurerm_user_assigned_identity" "aks_agw_uid" {
   resource_group_name = data.azurerm_resource_group.aks_node_rg.name
-  name = "ingressapplicationgateway-${azurerm_kubernetes_cluster.aks.name}"
+  name                = "ingressapplicationgateway-${azurerm_kubernetes_cluster.aks.name}"
 
   depends_on = [
     azurerm_kubernetes_cluster.aks,
@@ -284,10 +285,10 @@ data "azurerm_user_assigned_identity" "aks_agw_uid" {
 
 # assign user assigned ingress managed id of aks to ingress agw - required to allow AGIC to manage agw
 resource "azurerm_role_assignment" "aks_agw_role" {
-  principal_id                     = data.azurerm_user_assigned_identity.aks_agw_uid.principal_id
-  role_definition_name             = "Contributor"
-  scope                            = azurerm_application_gateway.aks_agw.id
-  
+  principal_id         = data.azurerm_user_assigned_identity.aks_agw_uid.principal_id
+  role_definition_name = "Contributor"
+  scope                = azurerm_application_gateway.aks_agw.id
+
   depends_on = [
     azurerm_kubernetes_cluster.aks,
     data.azurerm_resource_group.aks_node_rg,
@@ -298,10 +299,10 @@ resource "azurerm_role_assignment" "aks_agw_role" {
 # assign user assigned ingress managed id of aks to ingress agw subnet 
 # required to allow AGIC to manage agw
 resource "azurerm_role_assignment" "aks_agw_snet_role" {
-  principal_id                     = data.azurerm_user_assigned_identity.aks_agw_uid.principal_id
-  role_definition_name             = "Network Contributor"
-  scope                            = azurerm_subnet.aks_agw_snet.id
-  
+  principal_id         = data.azurerm_user_assigned_identity.aks_agw_uid.principal_id
+  role_definition_name = "Network Contributor"
+  scope                = azurerm_subnet.aks_agw_snet.id
+
   depends_on = [
     azurerm_kubernetes_cluster.aks,
     data.azurerm_resource_group.aks_node_rg,
