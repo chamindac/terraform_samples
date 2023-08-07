@@ -1,3 +1,7 @@
+locals {
+  application_insights_retention_days = 30
+}
+
 variable "DEVOPSSERVICECONNECTIONAID" {
   type = string
 }
@@ -12,9 +16,4 @@ variable "TENANTID" {
 
 variable "SUBSCRIPTIONID" {
   type = string
-}
-
-variable "appinsights_retention_days" {
-  type = number
-  default = 30
 }
