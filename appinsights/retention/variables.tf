@@ -14,7 +14,7 @@ variable "SUBSCRIPTIONID" {
   type = string
 }
 
-variable "appinsights_retention" {
+variable "appinsights_retention_days" {
   type = number
   default = 30
 }
