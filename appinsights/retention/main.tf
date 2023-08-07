@@ -47,13 +47,17 @@ resource "null_resource" "log_analytics_table_retention" {
     "AppPerformanceCounters",
     "AppRequests",
     "AppSystemEvents",
-    "AppTraces",
+    "AppTraces"
   ])
+
+  triggers = {
+    value = var.appinsights_retention
+  }
 
   provisioner "local-exec" {
     command = <<-SHELL
       az login --service-principal -u ${var.DEVOPSSERVICECONNECTIONAID} -p ${var.DEVOPSSERVICECONNECTIONPW} --tenant ${var.TENANTID}
-      az monitor log-analytics workspace table update --resource-group ${azurerm_resource_group.rg.name} --workspace-name ${azurerm_log_analytics_workspace.log_analytics.name} --name ${each.key} --retention-time 30 --total-retention-time 30 --subscription ${var.SUBSCRIPTIONID}
+      az monitor log-analytics workspace table update --resource-group ${azurerm_resource_group.rg.name} --workspace-name ${azurerm_log_analytics_workspace.log_analytics.name} --name ${each.key} --retention-time ${var.appinsights_retention} --total-retention-time ${var.appinsights_retention} --subscription ${var.SUBSCRIPTIONID}
     SHELL
 
     interpreter = [ "PowerShell" ]

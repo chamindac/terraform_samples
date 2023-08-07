@@ -13,3 +13,8 @@ variable "TENANTID" {
 variable "SUBSCRIPTIONID" {
   type = string
 }
+
+variable "appinsights_retention" {
+  type = number
+  default = 30
+}
