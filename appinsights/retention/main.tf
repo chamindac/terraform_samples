@@ -64,6 +64,7 @@ resource "null_resource" "log_analytics_table_retention" {
   }
 
   depends_on = [ 
+    azurerm_log_analytics_workspace.log_analytics,
     azurerm_application_insights.app_insights
    ]
 }
