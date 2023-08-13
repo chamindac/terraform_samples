@@ -51,7 +51,7 @@ resource "null_resource" "log_analytics_table_retention" {
   ])
 
   triggers = {
-    value = var.appinsights_retention_days
+    value = local.application_insights_retention_days
   }
 
   provisioner "local-exec" {
