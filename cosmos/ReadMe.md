@@ -9,7 +9,7 @@ az account set --subscription $subscriptionid
 ```
 or use `az login` to login to Azure with a user
 ```
-az login --service-principal --username <spnappid> --password <spnapppwd> --tenant <tenantid>
+az login
 az account set --subscription <subscriptionid> 
 ```
 
