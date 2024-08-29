@@ -11,5 +11,5 @@ tenant_id       = "#{tenant_id}#"
 #region networking
 vnet_cidr       = "#{vnet_cidr}#"
 subnet_cidr_aks = "#{subnet_cidr_aks}#"
-subnet_cidr_agw = "#{subnet_cidr_agw}#"
+subnet_cidr     = "#{subnet_cidr}#"
 #endregion

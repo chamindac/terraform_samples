@@ -41,10 +41,11 @@ resource "azurerm_subnet_network_security_group_association" "aks_nsg" {
   network_security_group_id = azurerm_network_security_group.aks.id
 }
 
-resource "azurerm_subnet" "agw" {
-  name                 = "${var.prefix}-${var.project}-${var.env_name}-agw-snet"
-  resource_group_name  = azurerm_virtual_network.env_vnet.resource_group_name
-  virtual_network_name = azurerm_virtual_network.env_vnet.name
-  address_prefixes     = ["${var.subnet_cidr_agw}"]
-  service_endpoints    = ["Microsoft.Web", "Microsoft.Storage"]
+resource "azurerm_subnet" "subnet" {
+  name                              = "${var.prefix}-${var.project}-${var.env_name}-snet"
+  resource_group_name               = azurerm_virtual_network.env_vnet.resource_group_name
+  virtual_network_name              = azurerm_virtual_network.env_vnet.name
+  private_endpoint_network_policies = "Disabled"
+  address_prefixes                  = ["${var.subnet_cidr}"]
+  service_endpoints                 = ["Microsoft.Web", "Microsoft.Storage", "Microsoft.KeyVault", "Microsoft.AzureCosmosDB", "Microsoft.EventHub", "Microsoft.ServiceBus"]
 }

@@ -60,8 +60,8 @@ variable "subnet_cidr_aks" {
   type        = string
 }
 
-variable "subnet_cidr_agw" {
-  description = "Subnet cidr range for app gateway"
+variable "subnet_cidr" {
+  description = "Subnet cidr range for env default subnet"
   type        = string
 }
 #endregion
