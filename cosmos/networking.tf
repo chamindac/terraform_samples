@@ -29,9 +29,13 @@ resource "azurerm_subnet" "aks" {
   address_prefixes     = ["${var.subnet_cidr_aks}"]
   service_endpoints = [
     "Microsoft.AzureActiveDirectory",
+    "Microsoft.AzureCosmosDB",
+    "Microsoft.EventHub",
     "Microsoft.KeyVault",
     "Microsoft.Storage",
-    "Microsoft.Sql"
+    "Microsoft.Sql",
+    "Microsoft.ServiceBus",
+    "Microsoft.Web"
   ]
 }
 
