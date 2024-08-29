@@ -1,6 +1,6 @@
 # Locals
 locals {
-  
+
   tags = {
     Environment          = var.env
     Owner                = "Demo Team"
@@ -45,6 +45,23 @@ variable "subscription_id" {
 
 variable "tenant_id" {
   description = "Azure subscription id"
+  type        = string
+}
+#endregion
+
+#region networking
+variable "vnet_cidr" {
+  description = "Virtual network CIDR"
+  type        = string
+}
+
+variable "subnet_cidr_aks" {
+  description = "Subnet cidr range for AKS cluster"
+  type        = string
+}
+
+variable "subnet_cidr_agw" {
+  description = "Subnet cidr range for app gateway"
   type        = string
 }
 #endregion
