@@ -6,7 +6,7 @@ az account set --subscription <subscriptionid>
 
 Use below comands run terraform
 ```
-terraform init
+terraform init -upgrade
 terraform plan -out='my.tfplan'
 terraform apply my.tfplan
 ```
