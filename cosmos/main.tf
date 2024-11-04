@@ -7,7 +7,7 @@ terraform {
       source = "hashicorp/azurerm"
       # version = "=3.116.0"
       # version = "=4.0.1" # no smooth migration
-      version = "=4.1.0" # Migrates fine
+      version = "=4.8.0" # Migrates fine
     }
   }
 }
@@ -18,12 +18,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "instance_rg" {
-  name     = "ch-cosmostest-dev-wus-001-rg"
-  location = "westus"
+  name     = "ch-cosmostest-dev-eus2-001-rg"
+  location = "eastus2"
 }
 
 resource "azurerm_cosmosdb_account" "instancecosmos" {
-  name                          = "ch-cosmostest-dev-wus-001-cdb"
+  name                          = "ch-cosmostest-dev-eus2-001-cdb"
   location                      = azurerm_resource_group.instance_rg.location
   resource_group_name           = azurerm_resource_group.instance_rg.name
   offer_type                    = "Standard"
@@ -37,6 +37,16 @@ resource "azurerm_cosmosdb_account" "instancecosmos" {
   geo_location {
     location          = azurerm_resource_group.instance_rg.location
     failover_priority = 0
+  }
+
+  geo_location {
+    location          = "westus"
+    failover_priority = 1
+  }
+
+  backup {
+    type               = "Continuous"
+    tier               = "Continuous7Days"
   }
 
   consistency_policy {
