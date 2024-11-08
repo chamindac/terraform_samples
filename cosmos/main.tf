@@ -31,22 +31,30 @@ resource "azurerm_cosmosdb_account" "instancecosmos" {
   automatic_failover_enabled    = false
   public_network_access_enabled = true
   # ip_range_filter               = "89.8.134.232,104.42.195.92"
-  ip_range_filter       = ["89.8.134.232", "104.42.195.92"]
+  ip_range_filter       = ["46.15.97.87", "104.42.195.92"]
   default_identity_type = "FirstPartyIdentity"
 
-  geo_location {
-    location          = azurerm_resource_group.instance_rg.location
-    failover_priority = 0
+  dynamic "geo_location" {
+    for_each = var.ENV == local.dev_environment || var.ENV == local.qa_environment ? local.cosmosdb_regions_none_prod : local.cosmosdb_regions_prod
+    content {
+      location          = geo_location.value.location
+      failover_priority = geo_location.value.failover_priority
+    }
   }
 
-  geo_location {
-    location          = "westus"
-    failover_priority = 1
-  }
+  # geo_location {
+  #   location          = azurerm_resource_group.instance_rg.location
+  #   failover_priority = 0
+  # }
+
+  # geo_location {
+  #   location          = "westus"
+  #   failover_priority = 1
+  # }
 
   backup {
-    type               = "Continuous"
-    tier               = "Continuous7Days"
+    type = "Continuous"
+    tier = "Continuous7Days"
   }
 
   consistency_policy {
