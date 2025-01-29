@@ -66,7 +66,7 @@ resource "azurerm_storage_share" "aks_windows" {
   name               = "akswindowsfileshare"
   storage_account_id = azurerm_storage_account.filestorage_aks_win.id
   access_tier        = "Hot"
-  quota              = 100 # Size in GB (Max 5TB since large file share not enabled in storage)
+  quota              = 200 # Size in GB (Max 5TB since large file share not enabled in storage)
 }
 
 resource "azurerm_storage_share" "aks_linux" {
