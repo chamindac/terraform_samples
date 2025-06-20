@@ -16,7 +16,7 @@ terraform {
 
 provider "azurerm" {
   features {}
-  subscription_id = "subscription"
+  subscription_id = "ab296514-2304-4132-97d7-95c888d9d0ab"
 }
 
 resource "azurerm_resource_group" "instance_rg" {
@@ -37,15 +37,20 @@ resource "azurerm_storage_account" "instancestoragecold" {
   cross_tenant_replication_enabled = false
 
   blob_properties {
-    delete_retention_policy {
-      days = 30
-    }
     versioning_enabled  = true
     change_feed_enabled = true
 
-    restore_policy {
-      days = 6
+    delete_retention_policy {
+      days = 30
     }
+
+    container_delete_retention_policy {
+      days = 30
+    }
+    # No need as we are setting up backup
+    # restore_policy {
+    #   days = 6
+    # }
   }
 
   lifecycle {
@@ -63,7 +68,7 @@ resource "azurerm_storage_management_policy" "cold_storage_version_cleanup" {
     enabled = true
 
     filters {
-      blob_types = ["blockBlob","appendBlob"]
+      blob_types = ["blockBlob", "appendBlob"]
       # optional: limit to specific prefixes
       # prefix_match = ["myprefix/"]
     }
@@ -89,17 +94,22 @@ resource "azurerm_storage_account" "instancestoragehot" {
   cross_tenant_replication_enabled = false
 
   blob_properties {
-    delete_retention_policy {
-      days = 7
-    }
-
     versioning_enabled            = true
     change_feed_enabled           = true
     change_feed_retention_in_days = 30
 
-    restore_policy {
-      days = 6
+    delete_retention_policy {
+      days = 7
     }
+
+    container_delete_retention_policy {
+      days = 7
+    }
+
+    # No need as we are setting up backup
+    # restore_policy {
+    #   days = 6
+    # }
   }
 
   lifecycle {
