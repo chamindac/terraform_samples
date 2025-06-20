@@ -116,3 +116,49 @@ resource "azurerm_storage_account" "instancestoragehot" {
     prevent_destroy = true
   }
 }
+
+resource "azurerm_data_protection_backup_vault" "backup_vault" {
+  name                = "ch-stbackup-dev-weu-bv"
+  location            = azurerm_resource_group.instance_rg.location
+  resource_group_name = azurerm_resource_group.instance_rg.name
+  datastore_type      = "VaultStore"
+  redundancy          = "GeoRedundant"
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_role_assignment" "cold_storage_backup_role" {
+  principal_id         = azurerm_data_protection_backup_vault.backup_vault.identity[0].principal_id
+  role_definition_name = "Storage Account Backup Contributor"
+  scope                = azurerm_storage_account.instancestoragecold.id
+}
+
+resource "azurerm_role_assignment" "hot_storage_backup_role" {
+  principal_id         = azurerm_data_protection_backup_vault.backup_vault.identity[0].principal_id
+  role_definition_name = "Storage Account Backup Contributor"
+  scope                = azurerm_storage_account.instancestoragehot.id
+}
+
+# # Backup Policy for Blob Storage
+# resource "azurerm_data_protection_backup_policy_blob_storage" "example" {
+#   name                = "example-blob-policy"
+#   vault_name          = azurerm_data_protection_backup_vault.example.name
+#   resource_group_name = azurerm_resource_group.example.name
+
+#   default_retention_duration = "P30D"  # ISO 8601 Duration: 30 days
+#   backup_frequency           = "Daily"
+#   backup_start_time         = "2024-01-01T02:00:00Z"
+# }
+
+# # Backup Instance to protect Blob Storage
+# resource "azurerm_data_protection_backup_instance_blob_storage" "example" {
+#   name                          = "example-blob-backup-instance"
+#   vault_id                      = azurerm_data_protection_backup_vault.example.id
+#   location                      = azurerm_resource_group.example.location
+#   storage_account_id            = azurerm_storage_account.example.id
+#   backup_policy_id              = azurerm_data_protection_backup_policy_blob_storage.example.id
+#   resource_group_name           = azurerm_resource_group.example.name
+#   datasource_type               = "Microsoft.Storage/storageAccounts/blobServices"
+# }
