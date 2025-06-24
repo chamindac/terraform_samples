@@ -16,21 +16,21 @@ terraform {
 
 provider "azurerm" {
   features {}
-  subscription_id = "subscription"
+  subscription_id = "subscriptionid"
 }
 
 resource "azurerm_resource_group" "instance_rg" {
-  name     = "ch-stbackup-dev-weu-001-rg"
+  name     = "ch-blobbackup-dev-weu-001-rg"
   location = "westeurope"
 }
 
 resource "azurerm_resource_group" "shared_rg" {
-  name     = "ch-stbackup-dev-weu-shared-rg"
+  name     = "ch-blobbackup-dev-weu-shared-rg"
   location = "westeurope"
 }
 
-resource "azurerm_storage_account" "instancestoragecold" {
-  name                             = "chbackupdevweu001cold"
+resource "azurerm_storage_account" "instancestoragecool" {
+  name                             = "chdemodevweu001cool"
   location                         = azurerm_resource_group.instance_rg.location
   resource_group_name              = azurerm_resource_group.instance_rg.name
   account_tier                     = "Standard"
@@ -66,8 +66,8 @@ resource "azurerm_storage_account" "instancestoragecold" {
 
 
 
-resource "azurerm_storage_management_policy" "cold_storage_version_cleanup" {
-  storage_account_id = azurerm_storage_account.instancestoragecold.id
+resource "azurerm_storage_management_policy" "cool_storage_version_cleanup" {
+  storage_account_id = azurerm_storage_account.instancestoragecool.id
 
   rule {
     name    = "DeletePreviousVersions (auto-created)"
@@ -88,7 +88,7 @@ resource "azurerm_storage_management_policy" "cold_storage_version_cleanup" {
 }
 
 resource "azurerm_storage_account" "instancestoragehot" {
-  name                             = "chbackupdevweu001hot"
+  name                             = "chdemodevweu001hot"
   location                         = azurerm_resource_group.instance_rg.location
   resource_group_name              = azurerm_resource_group.instance_rg.name
   account_tier                     = "Standard"
@@ -102,7 +102,6 @@ resource "azurerm_storage_account" "instancestoragehot" {
   blob_properties {
     versioning_enabled  = true
     change_feed_enabled = true
-    # change_feed_retention_in_days = 30
 
     delete_retention_policy {
       days                     = 12
@@ -113,7 +112,6 @@ resource "azurerm_storage_account" "instancestoragehot" {
       days = 7
     }
 
-    # No need as we are setting up backup
     restore_policy {
       days = 7
     }
@@ -124,8 +122,48 @@ resource "azurerm_storage_account" "instancestoragehot" {
   }
 }
 
+resource "azurerm_storage_container" "cool_storage_images" {
+  name                  = "images"
+  storage_account_id    = azurerm_storage_account.instancestoragecool.id
+  container_access_type = "private"
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
+resource "azurerm_storage_container" "cool_storage_videos" {
+  name                  = "videos"
+  storage_account_id    = azurerm_storage_account.instancestoragecool.id
+  container_access_type = "private"
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
+resource "azurerm_storage_container" "hot_storage_images" {
+  name                  = "images"
+  storage_account_id    = azurerm_storage_account.instancestoragehot.id
+  container_access_type = "private"
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
+resource "azurerm_storage_container" "hot_storage_videos" {
+  name                  = "videos"
+  storage_account_id    = azurerm_storage_account.instancestoragehot.id
+  container_access_type = "private"
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
 resource "azurerm_data_protection_backup_vault" "backup_vault" {
-  name                = "ch-stbackup-dev-weu-bv"
+  name                = "ch-blobbackup-dev-weu-bv"
   location            = azurerm_resource_group.shared_rg.location
   resource_group_name = azurerm_resource_group.shared_rg.name
   datastore_type      = "VaultStore"
@@ -137,10 +175,10 @@ resource "azurerm_data_protection_backup_vault" "backup_vault" {
   }
 }
 
-resource "azurerm_role_assignment" "cold_storage_backup_role" {
+resource "azurerm_role_assignment" "cool_storage_backup_role" {
   principal_id         = azurerm_data_protection_backup_vault.backup_vault.identity[0].principal_id
   role_definition_name = "Storage Account Backup Contributor"
-  scope                = azurerm_storage_account.instancestoragecold.id
+  scope                = azurerm_storage_account.instancestoragecool.id
 }
 
 resource "azurerm_role_assignment" "hot_storage_backup_role" {
@@ -150,6 +188,18 @@ resource "azurerm_role_assignment" "hot_storage_backup_role" {
 }
 
 # Backup Policy for Blob Storage
+resource "azurerm_data_protection_backup_policy_blob_storage" "cool_storage_backup_policy" {
+  name     = "${azurerm_storage_account.instancestoragecool.name}-blob-policy"
+  vault_id = azurerm_data_protection_backup_vault.backup_vault.id
+
+  operational_default_retention_duration = "P7D"
+  vault_default_retention_duration       = "P30D"
+  time_zone                              = "W. Europe Standard Time"
+  backup_repeating_time_intervals        = ["R/2025-06-23T19:00:00/P1D"] # take backup every day
+
+  depends_on = [azurerm_role_assignment.cool_storage_backup_role]
+}
+
 resource "azurerm_data_protection_backup_policy_blob_storage" "hot_storage_backup_policy" {
   name     = "${azurerm_storage_account.instancestoragehot.name}-blob-policy"
   vault_id = azurerm_data_protection_backup_vault.backup_vault.id
@@ -157,49 +207,40 @@ resource "azurerm_data_protection_backup_policy_blob_storage" "hot_storage_backu
   operational_default_retention_duration = "P7D" # ISO 8601 Duration: 7 days - operational backup retention days
   vault_default_retention_duration       = "P7D"
   time_zone                              = "W. Europe Standard Time"
-  backup_repeating_time_intervals        = ["R/2025-06-23T17:00:00/P1D"] # take backup every day
+  backup_repeating_time_intervals        = ["R/2025-06-23T19:00:00/P1D"] # take backup every day
 
   depends_on = [azurerm_role_assignment.hot_storage_backup_role]
 }
 
-resource "azurerm_data_protection_backup_policy_blob_storage" "cold_storage_backup_policy" {
-  name     = "${azurerm_storage_account.instancestoragecold.name}-blob-policy"
-  vault_id = azurerm_data_protection_backup_vault.backup_vault.id
+# Backup Instance to protect Blob Storage
+resource "azurerm_data_protection_backup_instance_blob_storage" "cool_storage_backup_instance" {
+  name                            = "${azurerm_storage_account.instancestoragecool.name}-backup-instance"
+  vault_id                        = azurerm_data_protection_backup_vault.backup_vault.id
+  location                        = azurerm_storage_account.instancestoragecool.location
+  storage_account_id              = azurerm_storage_account.instancestoragecool.id
+  backup_policy_id                = azurerm_data_protection_backup_policy_blob_storage.cool_storage_backup_policy.id
+  storage_account_container_names = ["images", "videos"]
 
-  operational_default_retention_duration = "P7D"
-  vault_default_retention_duration       = "P30D"
-  time_zone                              = "W. Europe Standard Time"
-  backup_repeating_time_intervals        = ["R/2025-06-23T15:30:00/P1D"] # take backup every day
-
-  depends_on = [azurerm_role_assignment.cold_storage_backup_role]
+  depends_on = [
+    azurerm_role_assignment.cool_storage_backup_role,
+    azurerm_data_protection_backup_policy_blob_storage.cool_storage_backup_policy,
+    azurerm_storage_container.cool_storage_images,
+    azurerm_storage_container.cool_storage_videos
+  ]
 }
 
-# Backup Instance to protect Blob Storage
 resource "azurerm_data_protection_backup_instance_blob_storage" "hot_storage_backup_instance" {
-  name = "${azurerm_storage_account.instancestoragehot.name}-backup-instance"
-  # name ="chbackupdevweu001hot-chbackupdevweu001hot-ba4853d5-66c0-4de1-8677-eb821669b0fc"
+  name                            = "${azurerm_storage_account.instancestoragehot.name}-backup-instance"
   vault_id                        = azurerm_data_protection_backup_vault.backup_vault.id
   location                        = azurerm_storage_account.instancestoragehot.location
   storage_account_id              = azurerm_storage_account.instancestoragehot.id
   backup_policy_id                = azurerm_data_protection_backup_policy_blob_storage.hot_storage_backup_policy.id
-  storage_account_container_names = ["mytest"]
+  storage_account_container_names = ["images", "videos"]
 
   depends_on = [
     azurerm_role_assignment.hot_storage_backup_role,
-    azurerm_data_protection_backup_policy_blob_storage.hot_storage_backup_policy
-  ]
-}
-
-resource "azurerm_data_protection_backup_instance_blob_storage" "cold_storage_backup_instance" {
-  name                            = "${azurerm_storage_account.instancestoragecold.name}-backup-instance"
-  vault_id                        = azurerm_data_protection_backup_vault.backup_vault.id
-  location                        = azurerm_storage_account.instancestoragecold.location
-  storage_account_id              = azurerm_storage_account.instancestoragecold.id
-  backup_policy_id                = azurerm_data_protection_backup_policy_blob_storage.cold_storage_backup_policy.id
-  storage_account_container_names = ["mytest"]
-
-  depends_on = [
-    azurerm_role_assignment.cold_storage_backup_role,
-    azurerm_data_protection_backup_policy_blob_storage.cold_storage_backup_policy
+    azurerm_data_protection_backup_policy_blob_storage.hot_storage_backup_policy,
+    azurerm_storage_container.hot_storage_images,
+    azurerm_storage_container.hot_storage_videos
   ]
 }
