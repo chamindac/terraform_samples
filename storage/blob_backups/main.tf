@@ -16,11 +16,16 @@ terraform {
 
 provider "azurerm" {
   features {}
-  subscription_id = "ab296514-2304-4132-97d7-95c888d9d0ab"
+  subscription_id = "subscription"
 }
 
 resource "azurerm_resource_group" "instance_rg" {
   name     = "ch-stbackup-dev-weu-001-rg"
+  location = "westeurope"
+}
+
+resource "azurerm_resource_group" "shared_rg" {
+  name     = "ch-stbackup-dev-weu-shared-rg"
   location = "westeurope"
 }
 
@@ -41,16 +46,17 @@ resource "azurerm_storage_account" "instancestoragecold" {
     change_feed_enabled = true
 
     delete_retention_policy {
-      days = 30
+      days                     = 12
+      permanent_delete_enabled = false
     }
 
     container_delete_retention_policy {
       days = 30
     }
-    # No need as we are setting up backup
-    # restore_policy {
-    #   days = 6
-    # }
+
+    restore_policy {
+      days = 7
+    }
   }
 
   lifecycle {
@@ -94,12 +100,13 @@ resource "azurerm_storage_account" "instancestoragehot" {
   cross_tenant_replication_enabled = false
 
   blob_properties {
-    versioning_enabled            = true
-    change_feed_enabled           = true
-    change_feed_retention_in_days = 30
+    versioning_enabled  = true
+    change_feed_enabled = true
+    # change_feed_retention_in_days = 30
 
     delete_retention_policy {
-      days = 7
+      days                     = 12
+      permanent_delete_enabled = false
     }
 
     container_delete_retention_policy {
@@ -107,9 +114,9 @@ resource "azurerm_storage_account" "instancestoragehot" {
     }
 
     # No need as we are setting up backup
-    # restore_policy {
-    #   days = 6
-    # }
+    restore_policy {
+      days = 7
+    }
   }
 
   lifecycle {
@@ -119,10 +126,11 @@ resource "azurerm_storage_account" "instancestoragehot" {
 
 resource "azurerm_data_protection_backup_vault" "backup_vault" {
   name                = "ch-stbackup-dev-weu-bv"
-  location            = azurerm_resource_group.instance_rg.location
-  resource_group_name = azurerm_resource_group.instance_rg.name
+  location            = azurerm_resource_group.shared_rg.location
+  resource_group_name = azurerm_resource_group.shared_rg.name
   datastore_type      = "VaultStore"
   redundancy          = "GeoRedundant"
+  soft_delete         = "Off" # Set to Off to delete the backup instances via TF
 
   identity {
     type = "SystemAssigned"
@@ -141,24 +149,57 @@ resource "azurerm_role_assignment" "hot_storage_backup_role" {
   scope                = azurerm_storage_account.instancestoragehot.id
 }
 
-# # Backup Policy for Blob Storage
-# resource "azurerm_data_protection_backup_policy_blob_storage" "example" {
-#   name                = "example-blob-policy"
-#   vault_name          = azurerm_data_protection_backup_vault.example.name
-#   resource_group_name = azurerm_resource_group.example.name
+# Backup Policy for Blob Storage
+resource "azurerm_data_protection_backup_policy_blob_storage" "hot_storage_backup_policy" {
+  name     = "${azurerm_storage_account.instancestoragehot.name}-blob-policy"
+  vault_id = azurerm_data_protection_backup_vault.backup_vault.id
 
-#   default_retention_duration = "P30D"  # ISO 8601 Duration: 30 days
-#   backup_frequency           = "Daily"
-#   backup_start_time         = "2024-01-01T02:00:00Z"
-# }
+  operational_default_retention_duration = "P7D" # ISO 8601 Duration: 7 days - operational backup retention days
+  vault_default_retention_duration       = "P7D"
+  time_zone                              = "W. Europe Standard Time"
+  backup_repeating_time_intervals        = ["R/2025-06-23T17:00:00/P1D"] # take backup every day
 
-# # Backup Instance to protect Blob Storage
-# resource "azurerm_data_protection_backup_instance_blob_storage" "example" {
-#   name                          = "example-blob-backup-instance"
-#   vault_id                      = azurerm_data_protection_backup_vault.example.id
-#   location                      = azurerm_resource_group.example.location
-#   storage_account_id            = azurerm_storage_account.example.id
-#   backup_policy_id              = azurerm_data_protection_backup_policy_blob_storage.example.id
-#   resource_group_name           = azurerm_resource_group.example.name
-#   datasource_type               = "Microsoft.Storage/storageAccounts/blobServices"
-# }
+  depends_on = [azurerm_role_assignment.hot_storage_backup_role]
+}
+
+resource "azurerm_data_protection_backup_policy_blob_storage" "cold_storage_backup_policy" {
+  name     = "${azurerm_storage_account.instancestoragecold.name}-blob-policy"
+  vault_id = azurerm_data_protection_backup_vault.backup_vault.id
+
+  operational_default_retention_duration = "P7D"
+  vault_default_retention_duration       = "P30D"
+  time_zone                              = "W. Europe Standard Time"
+  backup_repeating_time_intervals        = ["R/2025-06-23T15:30:00/P1D"] # take backup every day
+
+  depends_on = [azurerm_role_assignment.cold_storage_backup_role]
+}
+
+# Backup Instance to protect Blob Storage
+resource "azurerm_data_protection_backup_instance_blob_storage" "hot_storage_backup_instance" {
+  name = "${azurerm_storage_account.instancestoragehot.name}-backup-instance"
+  # name ="chbackupdevweu001hot-chbackupdevweu001hot-ba4853d5-66c0-4de1-8677-eb821669b0fc"
+  vault_id                        = azurerm_data_protection_backup_vault.backup_vault.id
+  location                        = azurerm_storage_account.instancestoragehot.location
+  storage_account_id              = azurerm_storage_account.instancestoragehot.id
+  backup_policy_id                = azurerm_data_protection_backup_policy_blob_storage.hot_storage_backup_policy.id
+  storage_account_container_names = ["mytest"]
+
+  depends_on = [
+    azurerm_role_assignment.hot_storage_backup_role,
+    azurerm_data_protection_backup_policy_blob_storage.hot_storage_backup_policy
+  ]
+}
+
+resource "azurerm_data_protection_backup_instance_blob_storage" "cold_storage_backup_instance" {
+  name                            = "${azurerm_storage_account.instancestoragecold.name}-backup-instance"
+  vault_id                        = azurerm_data_protection_backup_vault.backup_vault.id
+  location                        = azurerm_storage_account.instancestoragecold.location
+  storage_account_id              = azurerm_storage_account.instancestoragecold.id
+  backup_policy_id                = azurerm_data_protection_backup_policy_blob_storage.cold_storage_backup_policy.id
+  storage_account_container_names = ["mytest"]
+
+  depends_on = [
+    azurerm_role_assignment.cold_storage_backup_role,
+    azurerm_data_protection_backup_policy_blob_storage.cold_storage_backup_policy
+  ]
+}
