@@ -1,3 +1,9 @@
+locals {
+  grafana_version = 11
+  subscription_id = "subscription_id"
+  tenant_id       = "tenant_id"
+}
+
 terraform {
   backend "local" {
     path = "terraform.tfstate"
@@ -5,25 +11,26 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=4.6.0"
+      version = "=4.38.1"
     }
     azuread = {
       source  = "hashicorp/azuread"
-      version = "=3.0.2"
+      version = "=3.4.0"
     }
   }
 }
 
 provider "azurerm" {
   features {}
-  subscription_id = "subscriptionid"
+  subscription_id = local.subscription_id
 }
 
 data "azurerm_subscription" "current" {
 }
 
-data "azurerm_resource_group" "instance_rg" {
-  name = "ch-demo-shared-rg"
+resource "azurerm_resource_group" "instance_rg" {
+  name     = "ch-demo-grafana-shared-rg"
+  location = "eastus"
 }
 
 # refer to sub_owners ad group to assign as aks admins 
@@ -34,9 +41,9 @@ data "azuread_group" "sub_owners" {
 
 resource "azurerm_dashboard_grafana" "grafana" {
   name                              = "ch-demo-shared-dg-001"
-  resource_group_name               = data.azurerm_resource_group.instance_rg.name
-  location                          = data.azurerm_resource_group.instance_rg.location
-  grafana_major_version             = 10
+  resource_group_name               = azurerm_resource_group.instance_rg.name
+  location                          = azurerm_resource_group.instance_rg.location
+  grafana_major_version             = local.grafana_version
   api_key_enabled                   = false
   deterministic_outbound_ip_enabled = false
   public_network_access_enabled     = true
