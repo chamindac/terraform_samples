@@ -216,7 +216,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
   azure_active_directory_role_based_access_control {
     azure_rbac_enabled = false
     managed            = true
-    tenant_id          = "efbad420-a8aa-4fcc-9e95-1d06435672d9"
+    tenant_id          = "tenantid"
 
     # add my team as cluster admin 
     admin_group_object_ids = [
