@@ -1,9 +1,3 @@
-locals {
-  kubernetes_version = "1.33.2"
-  subscription_id    = "subscription_id"
-  tenant_id          = "tenant_id"
-}
-
 terraform {
   required_providers {
     azurerm = {
@@ -22,6 +16,7 @@ provider "azurerm" {
   subscription_id = local.subscription_id
 }
 
+#region Basic AKS setup
 # resource group for aks
 resource "azurerm_resource_group" "aks_rg" {
   name     = "rg-chdemo-dev01"
@@ -160,3 +155,13 @@ resource "azurerm_role_assignment" "acr_attach" {
   scope                            = azurerm_container_registry.acr.id
   skip_service_principal_aad_check = true
 }
+#endregion Basic AKS setup
+
+#region Managed Prometheus setup
+# Azure monitor workspace
+resource "azurerm_monitor_workspace" "instance_amw" {
+  name                = "amw-chdemo-dev01"
+  location            = azurerm_resource_group.aks_rg.location
+  resource_group_name = azurerm_resource_group.aks_rg.name
+}
+#endregion Managed Prometheus setup
