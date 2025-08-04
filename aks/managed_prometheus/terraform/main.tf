@@ -161,6 +161,11 @@ resource "azurerm_role_assignment" "acr_attach" {
   role_definition_name             = "AcrPull"
   scope                            = azurerm_container_registry.acr.id
   skip_service_principal_aad_check = true
+
+  depends_on = [
+    azurerm_kubernetes_cluster.aks,
+    azurerm_container_registry.acr
+  ]
 }
 #endregion Basic AKS setup
 
@@ -179,6 +184,10 @@ resource "azurerm_monitor_data_collection_endpoint" "dce" {
   resource_group_name = azurerm_resource_group.aks_rg.name
   location            = azurerm_resource_group.aks_rg.location
   kind                = "Linux"
+
+  depends_on = [
+    azurerm_kubernetes_cluster.aks
+  ]
 }
 
 # Prometheus data collection rule
@@ -414,7 +423,10 @@ EOF
 
   depends_on = [
     azurerm_monitor_workspace.instance_amw,
-    azurerm_kubernetes_cluster.aks
+    azurerm_kubernetes_cluster.aks,
+    azurerm_monitor_data_collection_endpoint.dce,
+    azurerm_monitor_data_collection_rule.prometheus_dcr,
+    azurerm_monitor_data_collection_rule_association.prometheus_dcra
   ]
 }
 
@@ -576,7 +588,10 @@ EOF
 
   depends_on = [
     azurerm_monitor_workspace.instance_amw,
-    azurerm_kubernetes_cluster.aks
+    azurerm_kubernetes_cluster.aks,
+    azurerm_monitor_data_collection_endpoint.dce,
+    azurerm_monitor_data_collection_rule.prometheus_dcr,
+    azurerm_monitor_data_collection_rule_association.prometheus_dcra
   ]
 }
 
@@ -712,7 +727,10 @@ EOF
 
   depends_on = [
     azurerm_monitor_workspace.instance_amw,
-    azurerm_kubernetes_cluster.aks
+    azurerm_kubernetes_cluster.aks,
+    azurerm_monitor_data_collection_endpoint.dce,
+    azurerm_monitor_data_collection_rule.prometheus_dcr,
+    azurerm_monitor_data_collection_rule_association.prometheus_dcra
   ]
 }
 
@@ -834,7 +852,10 @@ EOF
 
   depends_on = [
     azurerm_monitor_workspace.instance_amw,
-    azurerm_kubernetes_cluster.aks
+    azurerm_kubernetes_cluster.aks,
+    azurerm_monitor_data_collection_endpoint.dce,
+    azurerm_monitor_data_collection_rule.prometheus_dcr,
+    azurerm_monitor_data_collection_rule_association.prometheus_dcra
   ]
 }
 
@@ -1060,7 +1081,10 @@ EOF
 
   depends_on = [
     azurerm_monitor_workspace.instance_amw,
-    azurerm_kubernetes_cluster.aks
+    azurerm_kubernetes_cluster.aks,
+    azurerm_monitor_data_collection_endpoint.dce,
+    azurerm_monitor_data_collection_rule.prometheus_dcr,
+    azurerm_monitor_data_collection_rule_association.prometheus_dcra
   ]
 }
 
@@ -1151,7 +1175,10 @@ EOF
 
   depends_on = [
     azurerm_monitor_workspace.instance_amw,
-    azurerm_kubernetes_cluster.aks
+    azurerm_kubernetes_cluster.aks,
+    azurerm_monitor_data_collection_endpoint.dce,
+    azurerm_monitor_data_collection_rule.prometheus_dcr,
+    azurerm_monitor_data_collection_rule_association.prometheus_dcra
   ]
 }
 
