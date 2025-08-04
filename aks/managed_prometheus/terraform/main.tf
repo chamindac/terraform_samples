@@ -173,6 +173,7 @@ resource "azurerm_monitor_workspace" "instance_amw" {
   resource_group_name = azurerm_resource_group.aks_rg.name
 }
 
+# Common data collection endpoint for prometheus and container insights
 resource "azurerm_monitor_data_collection_endpoint" "dce" {
   name                = substr("MSProm-${azurerm_resource_group.aks_rg.location}-${azurerm_kubernetes_cluster.aks.name}", 0, min(44, length("MSProm-${azurerm_resource_group.aks_rg.location}-${azurerm_kubernetes_cluster.aks.name}")))
   resource_group_name = azurerm_resource_group.aks_rg.name
@@ -180,7 +181,8 @@ resource "azurerm_monitor_data_collection_endpoint" "dce" {
   kind                = "Linux"
 }
 
-resource "azurerm_monitor_data_collection_rule" "dcr" {
+# Prometheus data collection rule
+resource "azurerm_monitor_data_collection_rule" "prometheus_dcr" {
   name                        = substr("MSProm-${azurerm_resource_group.aks_rg.location}-${azurerm_kubernetes_cluster.aks.name}", 0, min(64, length("MSProm-${azurerm_resource_group.aks_rg.location}-${azurerm_kubernetes_cluster.aks.name}")))
   resource_group_name         = azurerm_resource_group.aks_rg.name
   location                    = azurerm_resource_group.aks_rg.location
@@ -207,21 +209,80 @@ resource "azurerm_monitor_data_collection_rule" "dcr" {
   }
 
   description = "DCR for Azure Monitor Metrics Profile (Managed Prometheus)"
+
   depends_on = [
     azurerm_monitor_data_collection_endpoint.dce
   ]
 }
 
-resource "azurerm_monitor_data_collection_rule_association" "dcra" {
+# Prometheus data collection rule association
+resource "azurerm_monitor_data_collection_rule_association" "prometheus_dcra" {
   name                    = "MSProm-${azurerm_resource_group.aks_rg.location}-${azurerm_kubernetes_cluster.aks.name}"
   target_resource_id      = azurerm_kubernetes_cluster.aks.id
-  data_collection_rule_id = azurerm_monitor_data_collection_rule.dcr.id
+  data_collection_rule_id = azurerm_monitor_data_collection_rule.prometheus_dcr.id
   description             = "Association of data collection rule. Deleting this association will break the data collection for this AKS Cluster."
+
   depends_on = [
-    azurerm_monitor_data_collection_rule.dcr
+    azurerm_monitor_data_collection_rule.prometheus_dcr
   ]
 }
 
+# Container Insights data collection rule
+resource "azurerm_monitor_data_collection_rule" "ci_dcr" {
+  name                = "MSCI-${azurerm_resource_group.aks_rg.location}-${azurerm_kubernetes_cluster.aks.name}"
+  resource_group_name = azurerm_resource_group.aks_rg.name
+  location            = azurerm_resource_group.aks_rg.location
+
+  destinations {
+    log_analytics {
+      workspace_resource_id = azurerm_log_analytics_workspace.instance_log.id
+      name                  = "ciworkspace"
+    }
+  }
+
+  data_flow {
+    streams      = local.log_dataflow_streams
+    destinations = ["ciworkspace"]
+  }
+
+  data_sources {
+    extension {
+      streams        = local.log_dataflow_streams
+      extension_name = "ContainerInsights"
+      extension_json = jsonencode({
+        "dataCollectionSettings" : {
+          "interval" : "1m",
+          "namespaceFilteringMode" : "Off",
+          "namespaces" : ["kube-system", "gatekeeper-system"]
+          "enableContainerLogV2" : true
+        }
+      })
+      name = "ContainerInsightsExtension"
+    }
+  }
+
+  data_collection_endpoint_id = local.enable_high_log_scale_mode ? azurerm_monitor_data_collection_endpoint.dce.id : null
+
+  description = "DCR for Azure Monitor Container Insights"
+
+  depends_on = [
+    azurerm_monitor_data_collection_endpoint.dce
+  ]
+}
+
+# Container Insights data collection rule association
+resource "azurerm_monitor_data_collection_rule_association" "ci_dcra" {
+  name                    = "ContainerInsightsExtension"
+  target_resource_id      = azurerm_kubernetes_cluster.aks.id
+  data_collection_rule_id = azurerm_monitor_data_collection_rule.ci_dcr.id
+  description             = "Association of container insights data collection rule. Deleting this association will break the data collection for this AKS Cluster."
+
+  depends_on = [
+    azurerm_monitor_data_collection_rule.ci_dcr
+  ]
+}
+
+# Managed Grafana setup
 data "azurerm_resource_group" "grafana_rg" {
   name = "ch-demo-grafana-shared-rg"
 }
@@ -231,6 +292,7 @@ data "azurerm_dashboard_grafana" "grafana" {
   resource_group_name = data.azurerm_resource_group.grafana_rg.name
 }
 
+# Managed Grafana integration with Azure Monitor Workspace
 resource "null_resource" "amw_grafana" {
 
   triggers = {
@@ -252,12 +314,15 @@ resource "null_resource" "amw_grafana" {
   }
 }
 
+# Assign "Monitoring Data Reader" role to the Azure monitor  workspace for Grafana
+# https://www.azadvertizer.net/azrolesadvertizer/b0d8363b-8ddd-447d-831f-62ca05bff136.html
 resource "azurerm_role_assignment" "datareaderrole" {
   scope              = azurerm_monitor_workspace.instance_amw.id
   role_definition_id = "/subscriptions/${split("/", azurerm_monitor_workspace.instance_amw.id)[2]}/providers/Microsoft.Authorization/roleDefinitions/b0d8363b-8ddd-447d-831f-62ca05bff136"
   principal_id       = data.azurerm_dashboard_grafana.grafana.identity.0.principal_id
 }
 
+# Managed Prometheus recording rules for AKS
 resource "azurerm_monitor_alert_prometheus_rule_group" "node_recording_rules_rule_group" {
   name                = "NodeRecordingRulesRuleGroup-${azurerm_kubernetes_cluster.aks.name}"
   location            = azurerm_resource_group.aks_rg.location
