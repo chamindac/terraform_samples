@@ -6,7 +6,6 @@ locals {
   spn_pwd            = "spn_pwd" # replace with your actual service principal password
 
   log_dataflow_streams = [
-    "Microsoft-ContainerLog",
     "Microsoft-ContainerLogV2",
     "Microsoft-KubeEvents",
     "Microsoft-KubePodInventory",

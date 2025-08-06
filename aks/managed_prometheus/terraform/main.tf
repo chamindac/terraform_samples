@@ -151,7 +151,8 @@ resource "azurerm_kubernetes_cluster" "aks" {
   }
 
   oms_agent {
-    log_analytics_workspace_id = azurerm_log_analytics_workspace.instance_log.id
+    log_analytics_workspace_id      = azurerm_log_analytics_workspace.instance_log.id
+    msi_auth_for_monitoring_enabled = true
   }
 
 }
@@ -323,7 +324,7 @@ resource "null_resource" "amw_grafana" {
   }
 }
 
-# Assign "Monitoring Data Reader" role to the Azure monitor  workspace for Grafana
+# Assign "Monitoring Data Reader" role to the Azure monitor workspace for Grafana
 # https://www.azadvertizer.net/azrolesadvertizer/b0d8363b-8ddd-447d-831f-62ca05bff136.html
 resource "azurerm_role_assignment" "datareaderrole" {
   scope              = azurerm_monitor_workspace.instance_amw.id
