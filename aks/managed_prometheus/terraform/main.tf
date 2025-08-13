@@ -372,8 +372,7 @@ EOF
 EOF
   }
   rule {
-    enabled = true
-
+    enabled    = true
     record     = "instance:node_vmstat_pgmajfault:rate5m"
     expression = <<EOF
 rate(node_vmstat_pgmajfault{job="node"}[5m])
@@ -1103,6 +1102,7 @@ resource "azurerm_monitor_alert_prometheus_rule_group" "ux_recording_rules_rule_
   ]
 
   rule {
+    enabled    = true
     record     = "ux:pod_cpu_usage_windows:sum_irate"
     expression = <<EOF
 sum by (cluster, pod, namespace, node, created_by_kind, created_by_name, microsoft_resourceid) (
@@ -1124,11 +1124,13 @@ EOF
   }
 
   rule {
+    enabled    = true
     record     = "ux:controller_cpu_usage_windows:sum_irate"
     expression = "sum by (namespace, node, cluster, created_by_name, created_by_kind, microsoft_resourceid) (ux:pod_cpu_usage_windows:sum_irate)"
   }
 
   rule {
+    enabled    = true
     record     = "ux:pod_workingset_memory_windows:sum"
     expression = <<EOF
 sum by (cluster, pod, namespace, node, created_by_kind, created_by_name, microsoft_resourceid) (
@@ -1150,26 +1152,31 @@ EOF
   }
 
   rule {
+    enabled    = true
     record     = "ux:controller_workingset_memory_windows:sum"
     expression = "sum by (namespace, node, cluster, created_by_name, created_by_kind, microsoft_resourceid) (ux:pod_workingset_memory_windows:sum)"
   }
 
   rule {
+    enabled    = true
     record     = "ux:node_cpu_usage_windows:sum_irate"
     expression = "sum by (instance, cluster, microsoft_resourceid) ((1 - irate(windows_cpu_time_total{job=\"windows-exporter\", mode=\"idle\"}[5m])))"
   }
 
   rule {
+    enabled    = true
     record     = "ux:node_memory_usage_windows:sum"
     expression = "sum by (instance, cluster, microsoft_resourceid) ((windows_os_visible_memory_bytes{job = \"windows-exporter\"}- windows_memory_available_bytes{job = \"windows-exporter\"}))"
   }
 
   rule {
+    enabled    = true
     record     = "ux:node_network_packets_received_drop_total_windows:sum_irate"
     expression = "sum by (instance, cluster, microsoft_resourceid) (irate(windows_net_packets_received_discarded_total{job=\"windows-exporter\", device!=\"lo\"}[5m]))"
   }
 
   rule {
+    enabled    = true
     record     = "ux:node_network_packets_outbound_drop_total_windows:sum_irate"
     expression = "sum by (instance, cluster, microsoft_resourceid) (irate(windows_net_packets_outbound_discarded_total{job=\"windows-exporter\", device!=\"lo\"}[5m]))"
   }
