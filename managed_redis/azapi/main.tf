@@ -126,5 +126,5 @@ data "external" "redis_key" {
 
 output "redis_primary_access_key" {
   value     = data.external.redis_key.result.primary_key
-#   sensitive = true
+  sensitive = true
 }
