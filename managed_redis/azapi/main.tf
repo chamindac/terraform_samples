@@ -109,6 +109,7 @@ resource "null_resource" "redis_key" {
   provisioner "local-exec" {
     command     = <<-SHELL
       az login --service-principal -u ${local.spn_app_id} -p ${local.spn_pwd} --tenant ${local.tenant_id}
+      az account set --subscription ${local.subscription_id}
       az extension add --name redisenterprise --upgrade --yes
       $key = az redisenterprise database list-keys --cluster-name ${azapi_resource.managed_redis.name} --resource-group ${azurerm_resource_group.rg.name} --query primaryKey --output tsv
       $json = @{ primary_key = $key } | ConvertTo-Json -Compress
